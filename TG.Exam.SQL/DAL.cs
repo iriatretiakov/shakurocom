@@ -53,7 +53,8 @@ namespace TG.Exam.SQL
 
         public DataTable GetAllOrders()
         {
-            var sql = String.Empty;
+            //Don't sure that result should contains Ids
+            var sql = "SELECT * FROM [dbo].[Orders]";
 
             var ds = GetData(sql);
 
@@ -63,7 +64,9 @@ namespace TG.Exam.SQL
         }
         public DataTable GetAllOrdersWithCustomers()
         {
-            var sql = String.Empty;
+            //Don't sure that result should contains Ids
+            var sql = @"SELECT * FROM [dbo].[Orders] o
+JOIN[dbo].[Customers] c ON c.CustomerId = o.OrderCustomerId";
 
             var ds = GetData(sql);
 
@@ -74,7 +77,12 @@ namespace TG.Exam.SQL
 
         public DataTable GetAllOrdersWithPriceUnder(int price)
         {
-            var sql = String.Empty;
+            //Don't sure that result should contains Ids
+            var sql = $@"SELECT *
+FROM[dbo].[Orders] o
+JOIN[dbo].[OrdersItems] oi on oi.OrderId = o.OrderId
+JOIN[dbo].[Items] i on i.ItemId = oi.ItemId
+WHERE i.ItemPrice > {price}";
 
             var ds = GetData(sql);
 
@@ -85,14 +93,22 @@ namespace TG.Exam.SQL
 
         public void DeleteCustomer(int orderId)
         {
-            var sql = String.Empty;
+            //suppose order entity can't exists w\o customer
+            var sql = $@"DECLARE @CustomerId INT;
+SELECT @CustomerId = [OrderCustomerId] FROM [dbo].[Orders] WHERE [OrderId] = {orderId}
+DELETE [dbo].[Orders] WHERE [OrderId] = {orderId}
+DELETE [dbo].[OrdersItems] WHERE [OrderId] = {orderId}
+DELETE [dbo].[Customers] WHERE [CustomerId] = @CustomerId";
 
             Execute(sql);
         }
 
         internal DataTable GetAllItemsAndTheirOrdersCountIncludingTheItemsWithoutOrders()
         {
-            var sql = String.Empty;
+            var sql = @"SELECT i.ItemId, i.ItemName, i.ItemPrice, COUNT(oi.ItemId) AS Count
+FROM [dbo].[Items] i 
+LEFT JOIN [dbo].[OrdersItems] oi ON i.ItemId = oi.ItemId
+GROUP BY i.ItemId, i.ItemName, i.ItemPrice";
 
             var ds = GetData(sql);
 
